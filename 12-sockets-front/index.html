@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <title>Web sockets front</title>
+</head>
+
+<body>
+  <h1>Websockets - Status</h1>
+  <h3></h3>
+
+  <form action=""><input type="text" id="placeholder">
+    </input>Enviar mensaje
+    <button>Enviar</button>
+  </form>
+
+  <ul id="messages">
+
+  </ul>
+
+  <script>
+    const form = document.querySelector('form');
+    const input = document.getElementById('placeholder');
+    const h3 = document.querySelector('h3');
+
+    function connectToServer() {
+
+      const socket = new WebSocket('ws://localhost:3000');
+
+      socket.onopen = (event) => {
+        console.log('Conectado al servidor');
+        h3.textContent = 'Conectado';
+      };
+
+      function renderMessage(message) {
+        console.log("🚀 ~ renderMessage ~ message:", message)
+        const $ul = document.getElementById('messages');
+        const $li = document.createElement('li');
+        $li.textContent = message.data;
+
+        // Add messages to the bottom
+        // $ul.appendChild($li);
+
+        // Add messages to the top
+        $ul.prepend($li);
+      }
+
+      function sendMessage(value) {
+        if (value === '') return;
+        socket.send(value);
+        input.value = '';
+      }
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        sendMessage(input.value);
+      });
+
+      socket.onmessage = (event) => {
+        const dataParsed = JSON.parse(event.data);
+        renderMessage(dataParsed);
+      };
+
+      socket.onclose = (event) => {
+        h3.textContent = 'Desconectado';
+        setTimeout(() => {
+          connectToServer();
+        }, 1500);
+      }
+
+    }
+
+    connectToServer();
+
+
+  </script>
+
+</body>
+
+</html>
